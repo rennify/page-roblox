@@ -1,7 +1,12 @@
 {
-  "/_app": "pages/_app.js",
   "/_error": "pages/_error.js",
+  "/_app": "pages/_app.js",
   "/_document": "pages/_document.js",
-  "/": "pages/index.js",
-  "/api/shorten": "pages/api/shorten.js"
+  "/api/hello": "pages/api/hello.js",
+  "/api/shorten": "pages/api/shorten.js",
+  "/": "pages/index.html",
+  "/communities/[key]": "pages/communities/[key].js",
+  "/games/[key]/server": "pages/games/[key]/server.js",
+  "/users/[key]/profile": "pages/users/[key]/profile.js",
+  "/404": "pages/404.html"
 }
