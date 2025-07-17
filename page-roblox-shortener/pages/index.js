@@ -22,36 +22,24 @@ export default function Home() {
     url = cleanInput(url);
     const pathStartIndex = url.indexOf("/");
     if (pathStartIndex === -1) return null;
-
-    let path = url.slice(pathStartIndex);
-    const randomId = Math.floor(1000000000 + Math.random() * 9000000000);
+    const path = url.slice(pathStartIndex);
 
     if (tab === "profile") {
-      const match = path.match(/\/users\/(\d+)\/profile/);
-      if (!match) return null;
-      path = path.replace(match[1], randomId);
-      return `https://page-roblox.com${path}`;
+      if (!path.startsWith("/users/")) return null;
+      return `https://${url}`;
     }
-
     if (tab === "private-server") {
-      const match = path.match(/\/games\/(\d+)\//);
-      if (!match || !path.includes("privateServerLinkCode=")) return null;
-      path = path.replace(match[1], randomId);
-      return `https://page-roblox.com${path}`;
+      if (!path.startsWith("/games/") || !path.includes("privateServerLinkCode=")) return null;
+      return `https://${url}`;
     }
-
     if (tab === "group") {
-      const match = path.match(/\/communities\/(\d+)\//);
-      if (!match) return null;
-      path = path.replace(match[1], randomId);
-      // KEEP `/communities/` — no extra `/group/`
-      return `https://page-roblox.com${path}`;
+      if (!path.startsWith("/communities/")) return null;
+      return `https://${url}`;
     }
-
     return null;
   }
 
-  function shorten() {
+  async function shorten() {
     const now = Date.now();
     if (now - lastClick < 2000) {
       showNotif("Too fast! Slow down.");
@@ -65,8 +53,28 @@ export default function Home() {
       setShortUrl("");
       return;
     }
-    setShortUrl(processed);
-    showNotif("Shortened!");
+
+    try {
+      const response = await fetch("/api/shorten", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          originalUrl: processed,
+          tab: activeTab,
+        }),
+      });
+
+      const data = await response.json();
+      if (response.ok) {
+        setShortUrl(data.shortUrl);
+        showNotif("Shortened!");
+      } else {
+        showNotif(data.error || "Error shortening");
+      }
+    } catch (err) {
+      console.error(err);
+      showNotif("Server error");
+    }
   }
 
   function copyToClipboard() {
@@ -162,8 +170,8 @@ export default function Home() {
             activeTab === "profile"
               ? "roblox.com/users/123456789/profile"
               : activeTab === "private-server"
-              ? "roblox.com/games/126884695634066/..."
-              : "roblox.com/communities/1774922576/"
+              ? "roblox.com/games/123456789/game-name?privateServerLinkCode=..."
+              : "roblox.com/communities/123456789/"
           }
           value={input}
           onChange={(e) => setInput(e.target.value)}
@@ -181,7 +189,7 @@ export default function Home() {
 
         {notif && <div className="notif">{notif}</div>}
 
-        <div className="footer">Made by renn, @notrennify</div>
+        <div className="footer">v2 Made by renn, dc @notrennify</div>
       </div>
     </>
   );

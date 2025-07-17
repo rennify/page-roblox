@@ -17,10 +17,15 @@ export default async function handler(req, res) {
     return;
   }
 
-  const { originalUrl } = req.body;
+  const { originalUrl, tab } = req.body;
 
   if (!originalUrl || !originalUrl.startsWith('http')) {
     res.status(400).json({ error: 'Invalid URL' });
+    return;
+  }
+
+  if (!tab || !['profile', 'private-server', 'group'].includes(tab)) {
+    res.status(400).json({ error: 'Invalid tab' });
     return;
   }
 
@@ -43,7 +48,16 @@ export default async function handler(req, res) {
     createdAt: new Date(),
   });
 
+  let shortUrl = '';
+  if (tab === 'profile') {
+    shortUrl = `https://page-roblox.com/users/${key}/profile`;
+  } else if (tab === 'private-server') {
+    shortUrl = `https://page-roblox.com/games/${key}/server`;
+  } else if (tab === 'group') {
+    shortUrl = `https://page-roblox.com/communities/${key}/`;
+  }
+
   res.status(200).json({
-    shortUrl: `https://page-roblox.com/users/${key}/profile`,
+    shortUrl,
   });
 }
