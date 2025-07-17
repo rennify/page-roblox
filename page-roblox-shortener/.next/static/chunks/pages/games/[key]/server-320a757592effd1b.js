@@ -1,1 +1,0 @@
-(self.webpackChunk_N_E=self.webpackChunk_N_E||[]).push([[621],{628:(_,e,n)=>{(window.__NEXT_P=window.__NEXT_P||[]).push(["/games/[key]/server",function(){return n(8862)}])},8862:(_,e,n)=>{"use strict";n.r(e),n.d(e,{__N_SSP:()=>u,default:()=>r});var u=!0;function r(){return null}}},_=>{_.O(0,[636,593,792],()=>_(_.s=628)),_N_E=_.O()}]);
