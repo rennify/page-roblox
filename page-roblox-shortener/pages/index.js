@@ -1,11 +1,14 @@
 import { useState, useEffect } from "react";
 
+const mainTabs = ["shortener", "hyperlink"];
 const tabs = ["profile", "private-server", "group"];
 
 export default function Home() {
+  const [mainTab, setMainTab] = useState("shortener");
   const [activeTab, setActiveTab] = useState("profile");
   const [input, setInput] = useState("");
   const [shortUrl, setShortUrl] = useState("");
+  const [hyperlink, setHyperlink] = useState("");
   const [notif, setNotif] = useState("");
   const [lastClick, setLastClick] = useState(0);
 
@@ -77,9 +80,25 @@ export default function Home() {
     }
   }
 
-  function copyToClipboard() {
-    if (!shortUrl) return;
-    navigator.clipboard.writeText(shortUrl);
+ function makeHyperlink() {
+  const url = input.trim();
+  if (!url) {
+    showNotif("Enter a link!");
+    return;
+  }
+  let cleanUrl = url.startsWith("http://") || url.startsWith("https://")
+    ? url.replace(/^https?:\/\//, "")
+    : url;
+
+  const finalUrl = `https://${cleanUrl}`;
+  const mdLink = `[https*:*//${cleanUrl}](${finalUrl})`;
+  setHyperlink(mdLink);
+  showNotif("Hyperlink created!");
+}
+
+  function copyToClipboard(text) {
+    if (!text) return;
+    navigator.clipboard.writeText(text);
     showNotif("Copied!");
   }
 
@@ -99,12 +118,14 @@ export default function Home() {
           box-shadow: 0 4px 12px rgba(0,0,0,0.4);
         }
         h1 { text-align: center; margin-bottom: 24px; color: #1d4dff; }
-        .tabs { display: flex; justify-content: space-around; margin-bottom: 24px; border-bottom: 2px solid #333; }
-        .tab {
+        .main-tabs, .tabs {
+          display: flex; justify-content: space-around; margin-bottom: 24px; border-bottom: 2px solid #333;
+        }
+        .tab, .main-tab {
           padding: 10px 20px; cursor: pointer; font-weight: 600;
           border-bottom: 3px solid transparent; transition: all 0.3s ease;
         }
-        .tab.active {
+        .tab.active, .main-tab.active {
           color: #1d4dff; border-color: #1d4dff;
           background: #222; border-radius: 6px 6px 0 0;
         }
@@ -126,6 +147,7 @@ export default function Home() {
         .short-url {
           margin-top: 16px; padding: 14px 18px; background: #222;
           border-radius: 8px; display: flex; justify-content: space-between; align-items: center;
+          word-break: break-all;
         }
         .copy-btn {
           background: #1d4dff; border: none; color: white; font-weight: 600;
@@ -152,44 +174,96 @@ export default function Home() {
       <div className="container">
         <h1>Page-Roblox Shortener</h1>
 
-        <div className="tabs">
-          {tabs.map((tab) => (
+        <div className="main-tabs">
+          {mainTabs.map((tab) => (
             <div
               key={tab}
-              onClick={() => setActiveTab(tab)}
-              className={`tab ${activeTab === tab ? "active" : ""}`}
+              onClick={() => {
+                setMainTab(tab);
+                setInput("");
+                setShortUrl("");
+                setHyperlink("");
+              }}
+              className={`main-tab ${mainTab === tab ? "active" : ""}`}
             >
-              {tab === "profile" ? "Profile" : tab === "private-server" ? "Private Server" : "Group"}
+              {tab === "shortener" ? "Shortener" : "Hyperlink"}
             </div>
           ))}
         </div>
 
-        <input
-          type="text"
-          placeholder={
-            activeTab === "profile"
-              ? "roblox.com/users/123456789/profile"
-              : activeTab === "private-server"
-              ? "roblox.com/games/123456789/game-name?privateServerLinkCode=..."
-              : "roblox.com/communities/123456789/"
-          }
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          onKeyDown={(e) => { if (e.key === "Enter") shorten(); }}
-        />
+        {mainTab === "shortener" && (
+          <>
+            <div className="tabs">
+              {tabs.map((tab) => (
+                <div
+                  key={tab}
+                  onClick={() => setActiveTab(tab)}
+                  className={`tab ${activeTab === tab ? "active" : ""}`}
+                >
+                  {tab === "profile"
+                    ? "Profile"
+                    : tab === "private-server"
+                    ? "Private Server"
+                    : "Group"}
+                </div>
+              ))}
+            </div>
 
-        <button onClick={shorten}>Shorten URL</button>
+            <input
+              type="text"
+              placeholder={
+                activeTab === "profile"
+                  ? "roblox.com/users/123456789/profile"
+                  : activeTab === "private-server"
+                  ? "roblox.com/games/123456789/game-name?privateServerLinkCode=..."
+                  : "roblox.com/communities/123456789/"
+              }
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") shorten();
+              }}
+            />
 
-        {shortUrl && (
-          <div className="short-url">
-            <span>{shortUrl}</span>
-            <button className="copy-btn" onClick={copyToClipboard}>Copy</button>
-          </div>
+            <button onClick={shorten}>Shorten URL</button>
+
+            {shortUrl && (
+              <div className="short-url">
+                <span>{shortUrl}</span>
+                <button className="copy-btn" onClick={() => copyToClipboard(shortUrl)}>Copy</button>
+              </div>
+            )}
+          </>
+        )}
+
+        {mainTab === "hyperlink" && (
+          <>
+            <input
+              type="text"
+              placeholder="rations.com or https://rations.com"
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") makeHyperlink();
+              }}
+            />
+
+            <button onClick={makeHyperlink}>Create Hyperlink</button>
+
+            {hyperlink && (
+              <div className="short-url">
+                <span>{hyperlink}</span>
+                <button className="copy-btn" onClick={() => copyToClipboard(hyperlink)}>Copy</button>
+              </div>
+            )}
+          </>
         )}
 
         {notif && <div className="notif">{notif}</div>}
 
-        <div className="footer">v2 Made by renn, dc @notrennify</div>
+        <div className="footer">
+          V3 Made by renn, dc @notrennify and @rennreborn
+        </div>
       </div>
     </>
   );
